@@ -1,10 +1,9 @@
-// filepath: /C:/Users/mohit/Downloads/cricket-player/cricket-player/proxy-server/proxy.js
 const express = require('express');
 const request = require('request');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const port = process.env.PORT || 3001;
 
 // Enable CORS for all routes
 app.use(cors());
@@ -14,15 +13,23 @@ app.get('/proxy', (req, res) => {
   if (!url) {
     return res.status(400).send('URL is required');
   }
-  // Set CORS headers explicitly
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
 
-  request(url).pipe(res);
+  // Log the request URL for debugging
+  console.log(`Proxying request to: ${url}`);
+
+  // Add CORS headers to the proxied response
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  request(url)
+    .on('error', (err) => {
+      console.error(`Error proxying request: ${err.message}`);
+      res.status(500).send('Error proxying request');
+    })
+    .pipe(res);
 });
 
-app.listen(PORT, () => {
-  console.log(`Proxy server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Proxy server is running on port ${port}`);
 });
